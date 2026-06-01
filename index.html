@@ -249,7 +249,7 @@
     signOut as firebaseSignOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
-    getFirestore, collection, getDocs, getDoc, setDoc, doc
+    getFirestore, collection, getDocs, setDoc, doc
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -351,9 +351,10 @@
       .filter(m => m.mult === 1 && m.hteam != null)
       .sort((a, b) => a.date.toMillis() - b.date.toMillis());
 
-    // User predictions
-    const predDoc = await getDoc(doc(db, "predictions", currentUser.uid));
-    predictions = predDoc.exists() ? (predDoc.data().matches || {}) : {};
+    // User predictions — stored as subcollection so Firestore rules can enforce match deadline
+    const predSnap = await getDocs(collection(db, "predictions", currentUser.uid, "matches"));
+    predictions = {};
+    predSnap.forEach(d => { predictions[d.id] = d.data(); });
 
     renderMatches(matches, teams);
   }
@@ -477,6 +478,8 @@
   }
 
   // ── Input handling ──
+  let pendingSaves = {}; // matchId → {h, a} waiting to be saved
+
   function onPredInput(e) {
     const mid  = e.target.dataset.mid;
     const side = e.target.dataset.side;
@@ -488,6 +491,7 @@
     } else {
       predictions[mid][side] = parseInt(val);
     }
+    pendingSaves[mid] = predictions[mid];
 
     // Style the input
     e.target.classList.toggle("has-value", val !== "");
@@ -499,11 +503,13 @@
   }
 
   async function savePredictions() {
+    const toSave = { ...pendingSaves };
+    pendingSaves = {};
     try {
-      await setDoc(
-        doc(db, "predictions", currentUser.uid),
-        { matches: predictions },
-        { merge: true }
+      await Promise.all(
+        Object.entries(toSave).map(([mid, pred]) =>
+          setDoc(doc(db, "predictions", currentUser.uid, "matches", mid), pred)
+        )
       );
       showSaveStatus("Saved ✓", "#34a853");
       setTimeout(() => showSaveStatus("", "#34a853"), 2000);
