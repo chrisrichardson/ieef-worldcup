@@ -247,7 +247,7 @@
     signOut as firebaseSignOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
-    getFirestore, collection, getDocs, query, where, orderBy
+    getFirestore, collection, getDocs
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -333,13 +333,14 @@
     const teams = {};
     teamsSnap.forEach(doc => { teams[doc.data().id] = doc.data(); });
 
-    // Fetch group-stage matches (hteam != null), ordered by date
-    const matchesSnap = await getDocs(
-      query(collection(db, "matches"), where("mult", "==", 1), orderBy("date"))
-    );
+    // Fetch all matches, filter and sort client-side (avoids needing a composite index)
+    const matchesSnap = await getDocs(collection(db, "matches"));
 
-    const matches = [];
-    matchesSnap.forEach(doc => matches.push(doc.data()));
+    const allMatches = [];
+    matchesSnap.forEach(doc => allMatches.push(doc.data()));
+    const matches = allMatches
+      .filter(m => m.mult === 1 && m.hteam != null)
+      .sort((a, b) => a.date.toMillis() - b.date.toMillis());
 
     // Group by date (local date string)
     const byDate = {};
