@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IEEF World Cup</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1a1a2e;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .card h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .card p.subtitle {
+      color: #666;
+      margin-bottom: 32px;
+      font-size: 0.95rem;
+    }
+
+    /* Sign-in view */
+    #sign-in-view {}
+
+    .google-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: #fff;
+      border: 1px solid #dadce0;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #3c4043;
+      cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .google-btn:hover {
+      background: #f8f9fa;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .google-btn svg { flex-shrink: 0; }
+
+    /* Signed-in view */
+    #signed-in-view { display: none; }
+
+    .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      display: block;
+      object-fit: cover;
+    }
+
+    .avatar-placeholder {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      background: #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+    }
+
+    #user-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    #user-email {
+      color: #666;
+      font-size: 0.9rem;
+      margin-bottom: 28px;
+    }
+
+    .sign-out-btn {
+      background: #f0f2f5;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 28px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #555;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .sign-out-btn:hover { background: #e0e2e5; }
+
+    /* Loading state */
+    #loading-view {
+      color: #888;
+      font-size: 0.9rem;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e0e0e0;
+      border-top-color: #4285f4;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-msg {
+      color: #d93025;
+      font-size: 0.85rem;
+      margin-top: 16px;
+      min-height: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>IEEF World Cup</h1>
+  <p class="subtitle">Sign in to continue</p>
+
+  <!-- Loading -->
+  <div id="loading-view">
+    <div class="spinner"></div>
+    <p>Loading…</p>
+  </div>
+
+  <!-- Signed out -->
+  <div id="sign-in-view" style="display:none">
+    <button class="google-btn" onclick="signInWithGoogle()">
+      <!-- Google "G" logo -->
+      <svg width="20" height="20" viewBox="0 0 48 48">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        <path fill="none" d="M0 0h48v48H0z"/>
+      </svg>
+      Sign in with Google
+    </button>
+    <p class="error-msg" id="error-msg"></p>
+  </div>
+
+  <!-- Signed in -->
+  <div id="signed-in-view" style="display:none">
+    <img id="user-avatar" class="avatar" src="" alt="" style="display:none" />
+    <div id="user-avatar-placeholder" class="avatar-placeholder">👤</div>
+    <p id="user-name"></p>
+    <p id="user-email"></p>
+    <button class="sign-out-btn" onclick="signOut()">Sign out</button>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut as firebaseSignOut,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  // ─── YOUR FIREBASE CONFIG ───────────────────────────────────────────────────
+  // Replace these values with your project's config from the Firebase console:
+  // Firebase Console → Project settings → Your apps → SDK setup and config
+  const firebaseConfig = {
+    apiKey:            "REPLACE_WITH_YOUR_API_KEY",
+    authDomain:        "REPLACE_WITH_YOUR_PROJECT_ID.firebaseapp.com",
+    projectId:         "REPLACE_WITH_YOUR_PROJECT_ID",
+    storageBucket:     "REPLACE_WITH_YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "REPLACE_WITH_YOUR_MESSAGING_SENDER_ID",
+    appId:             "REPLACE_WITH_YOUR_APP_ID"
+  };
+  // ────────────────────────────────────────────────────────────────────────────
+
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  // Views
+  const loadingView  = document.getElementById("loading-view");
+  const signInView   = document.getElementById("sign-in-view");
+  const signedInView = document.getElementById("signed-in-view");
+
+  function show(view) {
+    [loadingView, signInView, signedInView].forEach(v => v.style.display = "none");
+    view.style.display = "block";
+  }
+
+  // Auth state listener
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById("user-name").textContent  = user.displayName || "User";
+      document.getElementById("user-email").textContent = user.email || "";
+
+      const avatar = document.getElementById("user-avatar");
+      const placeholder = document.getElementById("user-avatar-placeholder");
+      if (user.photoURL) {
+        avatar.src = user.photoURL;
+        avatar.style.display = "block";
+        placeholder.style.display = "none";
+      } else {
+        avatar.style.display = "none";
+        placeholder.style.display = "flex";
+      }
+
+      show(signedInView);
+    } else {
+      show(signInView);
+    }
+  });
+
+  // Sign in
+  window.signInWithGoogle = async () => {
+    document.getElementById("error-msg").textContent = "";
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      if (err.code !== "auth/popup-closed-by-user") {
+        document.getElementById("error-msg").textContent = "Sign-in failed: " + err.message;
+      }
+    }
+  };
+
+  // Sign out
+  window.signOut = async () => {
+    await firebaseSignOut(auth);
+  };
+</script>
+
+</body>
+</html>
